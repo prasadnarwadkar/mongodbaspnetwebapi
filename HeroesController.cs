@@ -38,16 +38,12 @@ namespace MongoDbASPNetWebAPI
             {
                 HeroItem item = new HeroItem();
 
-                var str = document.Elements.ElementAt(1).Value.ToString();
+                var str = document.Elements.Where(e => e.Name == "id").FirstOrDefault().Value.ToString();
                 int id = 0;
-
-                if (!int.TryParse(str, out id))
-                {
-                    continue;
-                }
+                int.TryParse(str, out id);
 
                 item.id = id;
-                item.name = document.Elements.ElementAt(2).Value.ToString();
+                item.name = document.Elements.Where(e => e.Name == "name").FirstOrDefault().Value.ToString();
                 list.Add(item);
             }
 
