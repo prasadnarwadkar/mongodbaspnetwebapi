@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbASPNetWebAPI.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -27,8 +28,9 @@ namespace MongoDbASPNetWebAPI
             collection = database.GetCollection<BsonDocument>(ConfigurationManager.AppSettings["mongodbcollname"]);
         }
 
+        [Route("api/getHero")]
         // GET api/<controller>
-        public HttpResponseMessage Get()
+        public HttpResponseMessage getHero()
         {
             List<HeroItem> list = new List<HeroItem>();
             
@@ -39,23 +41,30 @@ namespace MongoDbASPNetWebAPI
                 HeroItem item = new HeroItem();
 
                 var str = document.Elements.Where(e => e.Name == "id").FirstOrDefault().Value.ToString();
-                int id = 0;
-                int.TryParse(str, out id);
 
-                item.id = id;
+                item.id = str;
                 item.name = document.Elements.Where(e => e.Name == "name").FirstOrDefault().Value.ToString();
                 list.Add(item);
             }
 
             OurResponse response= new OurResponse();
             response.message ="";
+            response.success = 200;
             response.data = list;
 
-            return Request.CreateResponse(HttpStatusCode.OK, response);
+            var responseMsg = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent( JsonConvert.SerializeObject( response) )};
+
+            // Define and add values to variables: origins, headers, methods (can be global)               
+            responseMsg.Headers.Add("Access-Control-Allow-Origin", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Headers", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Methods", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Credentials", "true");
+
+            return responseMsg;
         }
 
         // GET api/<controller>/5
-        public HeroItem Get(int id)
+        public HeroItem Get(Guid id)
         {
             List<HeroItem> list = new List<HeroItem>();
 
@@ -67,14 +76,8 @@ namespace MongoDbASPNetWebAPI
                 HeroItem item = new HeroItem();
 
                 var str = document.Elements.ElementAt(1).Value.ToString();
-                id = 0;
 
-                if (!int.TryParse(str, out id))
-                {
-                    continue;
-                }
-
-                item.id = id;
+                item.id = str;
                 item.name = document.Elements.ElementAt(2).Value.ToString();
                 list.Add(item);
             }
@@ -85,29 +88,57 @@ namespace MongoDbASPNetWebAPI
         // POST api/<controller>
         [AcceptVerbs("OPTIONS", "POST")]
         [HttpPost]
-        public HttpResponseMessage Post(HeroItem value)
+        [Route("api/addHero")]
+        public HttpResponseMessage Post(heroPayload value)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
-            dict.Add("id", new Random().Next(1000));
-            dict.Add("name", value.name);
+            dict.Add("id", Guid.NewGuid().ToString());
+            dict.Add("name", value.heroItem.name);
 
             BsonDocument doc = new BsonDocument(dict);
             collection.InsertOne(doc);
 
-            return Request.CreateResponse(HttpStatusCode.OK, "0");
+            OurResponse response = new OurResponse();
+            response.message = "";
+            response.success = 200;
+            response.data = "successful";
+
+            var responseMsg = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(JsonConvert.SerializeObject(response)) };
+
+            // Define and add values to variables: origins, headers, methods (can be global)               
+            responseMsg.Headers.Add("Access-Control-Allow-Origin", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Headers", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Methods", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Credentials", "true");
+
+            return responseMsg;
         }
 
         // PUT api/<controller>/5
-        [AcceptVerbs("OPTIONS", "PUT")]
-        [HttpPut]
-        public HttpResponseMessage Put(HeroItem value)
+        [AcceptVerbs("OPTIONS", "POST")]
+        [HttpPost]
+        [Route("api/updateHero")]
+        public HttpResponseMessage Put(heroPayload value)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq<int>("id", value.id);
-            var update = Builders<BsonDocument>.Update.Set("name", value.name);
+            var filter = Builders<BsonDocument>.Filter.Eq<string>("id", value.heroItem.id);
+            var update = Builders<BsonDocument>.Update.Set("name", value.heroItem.name);
 
             var result = collection.UpdateOne(filter, update);
-           
-            return Request.CreateResponse(HttpStatusCode.OK, result.ModifiedCount);
+
+            OurResponse response = new OurResponse();
+            response.message = "";
+            response.success = 200;
+            response.data = "successful";
+
+            var responseMsg = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(JsonConvert.SerializeObject(response)) };
+
+            // Define and add values to variables: origins, headers, methods (can be global)               
+            responseMsg.Headers.Add("Access-Control-Allow-Origin", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Headers", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Methods", "*");
+            responseMsg.Headers.Add("Access-Control-Allow-Credentials", "true");
+
+            return responseMsg;
         }
 
         

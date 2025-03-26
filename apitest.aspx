@@ -26,7 +26,7 @@
                 dataType: 'application/json'
             });
 
-            location.href = 'https://mongodbwebapi.azurewebsites.net/api/ourheroes';
+            location.href = 'http://localhost:54951/api/ourheroes';
         }
     </script>
 </head>

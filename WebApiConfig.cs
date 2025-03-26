@@ -9,7 +9,13 @@ namespace MongoDbASPNetWebAPI
     {
         public static void Register(HttpConfiguration config)
         {
+            // Attribute routing.
+            config.MapHttpAttributeRoutes();
+
             config.EnableCors();
+            config.MessageHandlers.Add(new PreflightRequestsHandler());
+
+
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",

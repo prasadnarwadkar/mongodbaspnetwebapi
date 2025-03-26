@@ -17,8 +17,8 @@ namespace WebAPI
     {
         protected void Application_Start()
         {
-            WebApiConfig.Register(GlobalConfiguration.Configuration);
-                        
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+
             GlobalConfiguration.Configuration.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
         }
     }
